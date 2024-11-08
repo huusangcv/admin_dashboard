@@ -154,7 +154,7 @@ const MyProSidebar = () => {
                   fontWeight="bold"
                   sx={{ m: "10px 0 0 0" }}
                 >
-                  Harun Jeylan
+                  Admin
                 </Typography>
               </Box>
             </Box>
