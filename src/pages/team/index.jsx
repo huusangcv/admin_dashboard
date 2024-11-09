@@ -11,11 +11,12 @@ import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import Header from '../../components/Header';
 import Button2 from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-
+import GradeIcon from '@mui/icons-material/Grade';
 import { ToastContainer } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
+import user from '~/services/user';
 const formatDate = (dateString) => {
   const date = new Date(dateString);
 
@@ -143,7 +144,7 @@ const Team = () => {
             borderRadius="4px"
           >
             {access === 'Quản trị viên' && <AdminPanelSettingsOutlinedIcon />}
-            {access === 'manager' && <SecurityOutlinedIcon />}
+            {access === 'Vip' && <GradeIcon />}
             {access === 'Người dùng' && <LockOpenOutlinedIcon />}
             <Typography color={colors.grey[100]} sx={{ ml: '5px' }}>
               {access}
@@ -164,36 +165,28 @@ const Team = () => {
 
   const handleAddNewUser = (e) => {
     setDataNewUser({
-      name: 'user',
+      name,
       email,
       password,
     });
 
     const fetchApi = async () => {
       try {
-        const response = await fetch(`https://api.newmoviesz.online/api/users`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(dataNewUser),
-        });
+        const response = await user.SignUp(dataNewUser);
 
         // Phân tích phản hồi JSON
-        const result = await response.json();
-        if (result.success) {
-          setDataNewUser((prevData) => [...prevData, result.data]);
+        if (response.success) {
+          setData((prevData) => [...prevData, response.data]);
           setName('');
           setEmail('');
           setPassword('');
+          setDataNewUser(null);
           handleClose();
         }
       } catch (error) {}
     };
 
-    if (dataNewUser !== null) {
-      fetchApi();
-    }
+    fetchApi();
   };
 
   const handleDeleteUser = async (id) => {
@@ -298,8 +291,8 @@ const Team = () => {
                 defaultValue={selectedRow && selectedRow.email_verified_at === 'Chưa xác thực' ? 'null' : 'verified'}
                 onChange={hanleVerify}
               >
-                <option value="null">Chưa xác thực</option>
-                <option value="verified">Đã Xác thực</option>
+                <option value="null">Huỷ bỏ xác thực</option>
+                <option value="verified">Xác thực</option>
               </Form.Select>
             </Form.Group>
           </Form>
@@ -325,25 +318,15 @@ const Team = () => {
           <Form onSubmit={handleAddNewUser}>
             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
               <Form.Label>Tên</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="VD: DTH215782"
-                autoFocus
-                onChange={(e) => setName(e.target.value)}
-              />
+              <Form.Control type="text" placeholder="Từ 4 kí tự" autoFocus onChange={(e) => setName(e.target.value)} />
             </Form.Group>
             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
               <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="VD: DTH215782"
-                autoFocus
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <Form.Control type="email" placeholder="example@gmail.com" onChange={(e) => setEmail(e.target.value)} />
             </Form.Group>
             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
               <Form.Label>Mật khẩu</Form.Label>
-              <Form.Control type="text" autoFocus onChange={(e) => setPassword(e.target.value)} />
+              <Form.Control type="password" placeholder="Từ 6 kí tự" onChange={(e) => setPassword(e.target.value)} />
             </Form.Group>
           </Form>
         </Modal.Body>
