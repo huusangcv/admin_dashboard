@@ -6,16 +6,12 @@ import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettin
 import AddIcon from '@mui/icons-material/Add';
 import ErrorIcon from '@mui/icons-material/Error';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import Header from '../../components/Header';
 import Button2 from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
+
 import { ToastContainer } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -50,7 +46,6 @@ const Team = () => {
     setShow(false);
   };
   const handleShow = () => setShow(true);
-
   useEffect(() => {
     const fetchApi = async () => {
       try {
@@ -200,11 +195,33 @@ const Team = () => {
       fetchApi();
     }
   };
+
+  const handleDeleteUser = async (id) => {
+    if (id) {
+      // const deleteConfirmed = await dialogs.confirm(`Are you sure you want to delete "${id}"?`);
+      // // if (deleteConfirmed) {
+      // //   try {
+      // //     setIsDeleting(true);
+      // //     await mockApiDelete(id);
+      // //     dialogs.alert('Deleted!');
+      // //   } catch (error) {
+      // //     const message = error instanceof Error ? error.message : 'Unknown error';
+      // //     await dialogs.open(MyCustomDialog, { id, error: message });
+      // //   } finally {
+      // //     setIsDeleting(false);
+      // //   }
+      // // }
+    }
+  };
+
+  const hanleVerify = (e) => {
+    console.log('check>>> ', e.target.value);
+  };
   return (
     <>
       <Box m="20px">
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Header title="TEAM" subtitle="welcome to you Team" />
+          <Header title="Người dùng" subtitle="Danh sách người dùng" />
         </Box>
         <Box
           m="8px 0 0 0"
@@ -244,27 +261,14 @@ const Team = () => {
             >
               <AddIcon /> Thêm mới người dùng
             </Button2>
-            <Button2 size="small" sx={{ color: '#fff', background: 'red', padding: '0 5px' }}>
-              <PersonRemoveIcon /> Xoá người dùng
-            </Button2>
           </Stack>
           <DataGrid rows={data} columns={columns} onRowClick={handleRowClick}></DataGrid>
         </Box>
       </Box>
-      <Dialog open={selectedRow !== null} onClose={handleCloseDialog}>
-        <DialogTitle>Row Detail</DialogTitle>
-        <DialogContent>
-          <p>{selectedRow && selectedRow.id}</p>
-          <p>{selectedRow && selectedRow.name}</p>
-          {/* Hiển thị các thông tin khác của hàng ở đây */}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Close</Button>
-        </DialogActions>
-      </Dialog>
-      <Modal show={show} onHide={handleClose} style={{ padding: 0 }}>
+
+      <Modal show={selectedRow !== null} onHide={handleCloseDialog} style={{ padding: 0 }}>
         <Modal.Header closeButton>
-          <Modal.Title>Thêm người dùng</Modal.Title>
+          <Modal.Title className="form-label">Chi tiết người dùng</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleAddNewUser}>
@@ -272,8 +276,9 @@ const Team = () => {
               <Form.Label>Tên</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="VD: DTH215782"
                 autoFocus
+                value={selectedRow && selectedRow.name}
+                disabled
                 onChange={(e) => setName(e.target.value)}
               />
             </Form.Group>
@@ -281,29 +286,40 @@ const Team = () => {
               <Form.Label>Email</Form.Label>
               <Form.Control
                 type="email"
-                placeholder="VD: DTH215782"
                 autoFocus
+                value={selectedRow && selectedRow.email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>Mật khẩu</Form.Label>
-              <Form.Control type="text" autoFocus onChange={(e) => setPassword(e.target.value)} />
+              <Form.Label>Trạng thái</Form.Label>
+              <Form.Select
+                aria-label="Default select example"
+                defaultValue={selectedRow && selectedRow.email_verified_at === 'Chưa xác thực' ? 'null' : 'verified'}
+                onChange={hanleVerify}
+              >
+                <option value="null">Chưa xác thực</option>
+                <option value="verified">Đã Xác thực</option>
+              </Form.Select>
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="danger" type="submit" onClick={() => handleDeleteUser(selectedRow.id)}>
+            Xoá
+          </Button>
+
+          <Button className="ms-auto" variant="secondary" onClick={handleCloseDialog}>
             Huỷ
           </Button>
-          <Button variant="primary" type="submit" onClick={handleAddNewUser}>
-            Thêm
+          <Button variant="primary" type="submit" onClick={handleCloseDialog}>
+            Cập nhật
           </Button>
         </Modal.Footer>
       </Modal>
       <Modal show={show} onHide={handleClose} style={{ padding: 0 }}>
         <Modal.Header closeButton>
-          <Modal.Title>Thêm người dùng</Modal.Title>
+          <Modal.Title className="form-label">Thêm người dùng</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleAddNewUser}>
