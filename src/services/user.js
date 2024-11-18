@@ -6,6 +6,14 @@ const user = {
     const result = await axios.post(`${API_URL}/users`, data);
     return result;
   },
+  Update: async (id, data) => {
+    const result = await axios.post(`${API_URL}/users/${id}`, data);
+    return result;
+  },
+  Delete: async (id) => {
+    const result = await axios.delete(`${API_URL}/users/${id}`);
+    return result;
+  },
 };
 
 export default user;

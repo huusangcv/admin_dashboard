@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { tokens } from '../../theme';
@@ -7,7 +7,6 @@ import AddIcon from '@mui/icons-material/Add';
 import ErrorIcon from '@mui/icons-material/Error';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
-import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import Header from '../../components/Header';
 import Button2 from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
@@ -17,6 +16,8 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import user from '~/services/user';
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css';
 const formatDate = (dateString) => {
   const date = new Date(dateString);
 
@@ -40,8 +41,10 @@ const Team = () => {
   const [show, setShow] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRow, setSelectedRow] = useState(null);
+  const [alert, setAlert] = useState(null);
 
   const handleClose = () => {
     setShow(false);
@@ -165,23 +168,26 @@ const Team = () => {
 
   const handleAddNewUser = (e) => {
     setDataNewUser({
-      name,
+      name: 'duyen',
       email,
       password,
     });
 
     const fetchApi = async () => {
       try {
-        const response = await user.SignUp(dataNewUser);
+        const { message, success, data } = await user.SignUp(dataNewUser);
 
         // Phân tích phản hồi JSON
-        if (response.success) {
-          setData((prevData) => [...prevData, response.data]);
+        if (success) {
+          setData((prevData) => [...prevData, data]);
           setName('');
           setEmail('');
           setPassword('');
           setDataNewUser(null);
+          alert(message);
           handleClose();
+        } else {
+          alert(message);
         }
       } catch (error) {}
     };
@@ -190,25 +196,63 @@ const Team = () => {
   };
 
   const handleDeleteUser = async (id) => {
+    handleClose();
+    handleCloseDialog();
+    let fetchDeleteUser;
     if (id) {
-      // const deleteConfirmed = await dialogs.confirm(`Are you sure you want to delete "${id}"?`);
-      // // if (deleteConfirmed) {
-      // //   try {
-      // //     setIsDeleting(true);
-      // //     await mockApiDelete(id);
-      // //     dialogs.alert('Deleted!');
-      // //   } catch (error) {
-      // //     const message = error instanceof Error ? error.message : 'Unknown error';
-      // //     await dialogs.open(MyCustomDialog, { id, error: message });
-      // //   } finally {
-      // //     setIsDeleting(false);
-      // //   }
-      // // }
+      fetchDeleteUser = async () => {
+        const { success, message } = await user.Delete(id);
+        if (success) {
+          setAlert(true);
+          setData((prev) => prev);
+        } else {
+          setAlert(false);
+        }
+        try {
+        } catch (error) {}
+      };
     }
+    confirmAlert({
+      title: 'Confirm to submit',
+      message: 'Bạn có chắc muốn xoá người dùng này.',
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: () => fetchDeleteUser(),
+        },
+        {
+          label: 'No',
+          onClick: () => handleShow(),
+        },
+      ],
+    });
   };
 
   const hanleVerify = (e) => {
-    console.log('check>>> ', e.target.value);
+    const newStatus = e.target.value;
+    if (newStatus) {
+      setStatus(newStatus);
+    } else {
+      setStatus('');
+    }
+  };
+
+  const handleUpdateUser = () => {
+    if (status) {
+      const fetchUpdateProfileUser = async () => {
+        const { success, message } = await user.Update(selectedRow.id, status);
+        if (success) {
+          alert(message);
+        } else {
+          alert('Cập nhật thất bại');
+        }
+        try {
+        } catch (error) {}
+      };
+      fetchUpdateProfileUser();
+    }
+
+    console.log('checkk, ', selectedRow.id);
   };
   return (
     <>
@@ -264,7 +308,7 @@ const Team = () => {
           <Modal.Title className="form-label">Chi tiết người dùng</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleAddNewUser}>
+          <Form>
             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
               <Form.Label>Tên</Form.Label>
               <Form.Control
@@ -305,7 +349,7 @@ const Team = () => {
           <Button className="ms-auto" variant="secondary" onClick={handleCloseDialog}>
             Huỷ
           </Button>
-          <Button variant="primary" type="submit" onClick={handleCloseDialog}>
+          <Button variant="primary" type="submit" onClick={handleUpdateUser}>
             Cập nhật
           </Button>
         </Modal.Footer>
@@ -320,11 +364,11 @@ const Team = () => {
               <Form.Label>Tên</Form.Label>
               <Form.Control type="text" placeholder="Từ 4 kí tự" autoFocus onChange={(e) => setName(e.target.value)} />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput2">
               <Form.Label>Email</Form.Label>
               <Form.Control type="email" placeholder="example@gmail.com" onChange={(e) => setEmail(e.target.value)} />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput3">
               <Form.Label>Mật khẩu</Form.Label>
               <Form.Control type="password" placeholder="Từ 6 kí tự" onChange={(e) => setPassword(e.target.value)} />
             </Form.Group>
@@ -339,6 +383,9 @@ const Team = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      {/* <Alert severity={(alert && 'success') || 'error'}>
+        {(alert && 'Xoá người dùng thành công') || 'Xoá người dùng thất bại'}
+      </Alert> */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
