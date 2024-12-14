@@ -1,13 +1,17 @@
 import axios from '~/utils/custonizeAxiosAuth';
-const API_URL = 'https://api.newmoviesz.online/api';
+const API_URL = 'http://127.0.0.1:8000/api';
 
 const user = {
+  List: async () => {
+    const result = await axios.get(`${API_URL}/users`);
+    return result;
+  },
   SignUp: async (data) => {
     const result = await axios.post(`${API_URL}/users`, data);
     return result;
   },
   Update: async (id, data) => {
-    const result = await axios.post(`${API_URL}/users/${id}`, data);
+    const result = await axios.put(`${API_URL}/users/${id}`, data);
     return result;
   },
   Delete: async (id) => {

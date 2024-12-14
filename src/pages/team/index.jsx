@@ -18,6 +18,7 @@ import Modal from 'react-bootstrap/Modal';
 import user from '~/services/user';
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css';
+import './users.scss';
 const formatDate = (dateString) => {
   const date = new Date(dateString);
 
@@ -41,24 +42,18 @@ const Team = () => {
   const [show, setShow] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('');
   const [password, setPassword] = useState('');
+  const [status, setStatus] = useState('');
   const [selectedRow, setSelectedRow] = useState(null);
-  const [alert, setAlert] = useState(null);
-
+  const [idDeleteUser, setIdDeleteUser] = useState('');
+  const [dataUpdateUser, setDataUpdateUser] = useState('');
   const handleClose = () => {
     setShow(false);
   };
-  const handleShow = () => setShow(true);
   useEffect(() => {
     const fetchApi = async () => {
       try {
-        const response = await fetch('https://api.newmoviesz.online/api/users');
-        if (!response.ok) {
-          throw new Error(`Response status: ${response.status}`);
-        }
-
-        const { data, success } = await response.json();
+        const { data, success } = await user.List();
         if (success) {
           const result = data.data.map((newdata) => {
             const formattedDate = formatDate(newdata.created_at);
@@ -89,7 +84,7 @@ const Team = () => {
       }
     };
     fetchApi();
-  }, [dataNewUser]);
+  }, [dataNewUser, idDeleteUser, dataUpdateUser]);
 
   const columns = [
     { field: 'id', headerName: 'Id' },
@@ -158,20 +153,20 @@ const Team = () => {
     },
   ];
 
+  //Fetch api add new user
   useEffect(() => {
     const fetchApi = async () => {
       try {
-        const { message, success, data } = await user.SignUp(dataNewUser);
-
+        const { message, success } = await user.SignUp(dataNewUser);
         // Phân tích phản hồi JSON
         if (success) {
-          setData((prevData) => [...prevData, data]);
+          alert(message);
           setName('');
           setEmail('');
           setPassword('');
-          setDataNewUser(null);
-          alert(message);
+          setDataNewUser('');
           handleClose();
+          handleCloseDialog();
         } else {
           alert(message);
         }
@@ -183,8 +178,52 @@ const Team = () => {
     }
   }, [dataNewUser]);
 
+  //fetch api update user
+  useEffect(() => {
+    const fetchUpdateUser = async () => {
+      const { success, message } = await user.Update(selectedRow.id, dataUpdateUser);
+      if (success) {
+        alert(message);
+        setStatus('');
+        setEmail('');
+        setDataUpdateUser('');
+        handleClose();
+        handleCloseDialog();
+      } else {
+        alert(message);
+      }
+      try {
+      } catch (error) {}
+    };
+    if (status !== '') {
+      fetchUpdateUser();
+    }
+  }, [dataUpdateUser]);
+
+  //fetch api delete user
+  useEffect(() => {
+    const fetchDeleteUser = async () => {
+      const { success, message } = await user.Delete(idDeleteUser);
+      if (success) {
+        alert(message);
+        setIdDeleteUser('');
+        handleClose();
+        handleCloseDialog();
+      } else {
+        alert(message);
+      }
+      try {
+      } catch (error) {}
+    };
+    if (idDeleteUser !== '') {
+      fetchDeleteUser();
+    }
+  }, [idDeleteUser]);
+
   const handleRowClick = (params) => {
     setSelectedRow(params.row);
+    setName(params.row.name);
+    setEmail(params.row.email);
   };
 
   const handleCloseDialog = () => {
@@ -199,65 +238,33 @@ const Team = () => {
     });
   };
 
-  const handleDeleteUser = async (id) => {
-    handleClose();
-    handleCloseDialog();
-    let fetchDeleteUser;
-    if (id) {
-      fetchDeleteUser = async () => {
-        const { success, message } = await user.Delete(id);
-        if (success) {
-          setAlert(true);
-          setData((prev) => prev);
-        } else {
-          setAlert(false);
-        }
-        try {
-        } catch (error) {}
-      };
-    }
+  const handleUpdateUser = () => {
+    setDataUpdateUser({
+      email: (email !== selectedRow.email && email) || 'null',
+      email_verified_at: (status !== '' && status) || '',
+    });
+    console.log('check email', email);
+  };
+
+  const handleDeleteUser = async () => {
     confirmAlert({
       title: 'Xác nhận xoá',
       message: 'Bạn có chắc muốn xoá người dùng này.',
       buttons: [
         {
           label: 'Yes',
-          onClick: () => fetchDeleteUser(),
+          onClick: () => {
+            setIdDeleteUser(selectedRow.id);
+            handleCloseDialog();
+          },
         },
         {
           label: 'No',
-          onClick: () => handleShow(),
         },
       ],
     });
   };
-
-  const hanleVerify = (e) => {
-    const newStatus = e.target.value;
-    if (newStatus) {
-      setStatus(newStatus);
-    } else {
-      setStatus('');
-    }
-  };
-
-  const handleUpdateUser = () => {
-    if (status) {
-      const fetchUpdateProfileUser = async () => {
-        const { success, message } = await user.Update(selectedRow.id, status);
-        if (success) {
-          alert(message);
-        } else {
-          alert('Cập nhật thất bại');
-        }
-        try {
-        } catch (error) {}
-      };
-      fetchUpdateProfileUser();
-    }
-
-    console.log('checkk, ', selectedRow.id);
-  };
+  console.log('check data update', dataUpdateUser);
   return (
     <>
       <Box m="20px">
@@ -315,38 +322,27 @@ const Team = () => {
           <Form>
             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
               <Form.Label>Tên</Form.Label>
-              <Form.Control
-                type="text"
-                autoFocus
-                value={selectedRow && selectedRow.name}
-                disabled
-                onChange={(e) => setName(e.target.value)}
-              />
+              <Form.Control type="text" value={selectedRow && selectedRow.name} disabled />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput2">
               <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                autoFocus
-                value={selectedRow && selectedRow.email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <Form.Control type="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
             </Form.Group>
-            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput3">
               <Form.Label>Trạng thái</Form.Label>
               <Form.Select
                 aria-label="Default select example"
-                defaultValue={selectedRow && selectedRow.email_verified_at === 'Chưa xác thực' ? 'null' : 'verified'}
-                onChange={hanleVerify}
+                defaultValue={selectedRow && selectedRow.email_verified_at === 'Chưa xác thực' ? 'null' : 'verify'}
+                onChange={(e) => setStatus(e.target.value)}
               >
                 <option value="null">Huỷ bỏ xác thực</option>
-                <option value="verified">Xác thực</option>
+                <option value="verify">Xác thực</option>
               </Form.Select>
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="danger" type="submit" onClick={() => handleDeleteUser(selectedRow.id)}>
+          <Button variant="danger" type="submit" onClick={handleDeleteUser}>
             Xoá
           </Button>
 
@@ -387,9 +383,6 @@ const Team = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-      {/* <Alert severity={(alert && 'success') || 'error'}>
-        {(alert && 'Xoá người dùng thành công') || 'Xoá người dùng thất bại'}
-      </Alert> */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
