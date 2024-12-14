@@ -1,0 +1,162 @@
+.wapper {
+  min-height: 96px;
+  margin: -12px -12px 12px;
+  background-color: rgba(14, 39, 64, 0.45);
+  border-radius: 5px;
+}
+
+.filter {
+  width: 100%;
+  display: block;
+  unicode-bidi: isolate;
+  min-height: 0;
+  min-width: 0;
+}
+
+.columns {
+  display: grid;
+
+  grid-template-columns: repeat(5, 1fr) auto;
+
+  &.noneMultiline {
+    grid-template-columns: repeat(5, 1fr);
+
+    @media screen and (max-width: 767.98px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 5px;
+
+  @media screen and (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .column {
+    padding: 12px;
+    display: block;
+    flex-basis: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+
+    &.is-narrow {
+      flex: none;
+      width: unset;
+    }
+
+    &.view svg {
+      width: 25px;
+      height: 25px;
+    }
+
+    &.view a {
+      fill: #fff;
+    }
+
+    &.view a:last-child {
+      margin-left: 16px;
+    }
+
+    &.view a.active {
+      fill: #7a7a7a;
+    }
+  }
+
+  .label {
+    margin-bottom: 8px;
+    color: var(--especitally-color);
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  .control {
+    box-sizing: border-box;
+    clear: both;
+    font-size: 1rem;
+    position: relative;
+    text-align: inherit;
+  }
+
+  .select {
+    width: 100%;
+    height: 40px;
+    display: inline-block;
+    max-width: 100%;
+    position: relative;
+    vertical-align: top;
+
+    &:hover::after {
+      border-color: #d0c52e;
+    }
+
+    &::after {
+      display: block;
+      content: '';
+      border: 3px solid transparent;
+      border-radius: 2px;
+      border-right: 0;
+      border-top: 0;
+      display: block;
+      height: 10px;
+      margin-top: -0.4375em;
+      pointer-events: none;
+      position: absolute;
+      top: 45%;
+      -webkit-transform: rotate(-45deg);
+      transform: rotate(-45deg);
+      -webkit-transform-origin: center;
+      transform-origin: center;
+      width: 10px;
+      border-color: var(--primary-color);
+      right: 1.125em;
+      z-index: 4;
+    }
+
+    select {
+      padding: 0 30px 0 10px;
+      border-radius: 4px;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      display: block;
+      font-size: 1.6rem;
+      max-width: 100%;
+      outline: none;
+      -webkit-appearance: none;
+
+      &:invalid {
+        box-shadow: none;
+        border: none;
+        background-color: #f0f0f0;
+      }
+    }
+
+    button {
+      width: 50%;
+      height: 50%;
+    }
+  }
+
+  .filter-btn {
+    height: 35px;
+    flex: 1;
+
+    button {
+      border: none;
+      outline: none;
+      border-radius: 8px;
+      color: var(--especitally-color);
+      background-color: rgb(167 139 250);
+      height: 100%;
+      width: 100px;
+
+      &:hover {
+        cursor: pointer;
+        opacity: 0.8;
+      }
+    }
+  }
+}

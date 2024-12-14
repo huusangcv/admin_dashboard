@@ -37,7 +37,7 @@ const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [data, setData] = useState([]);
-  const [dataNewUser, setDataNewUser] = useState(null);
+  const [dataNewUser, setDataNewUser] = useState('');
   const [show, setShow] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -158,21 +158,7 @@ const Team = () => {
     },
   ];
 
-  const handleRowClick = (params) => {
-    setSelectedRow(params.row);
-  };
-
-  const handleCloseDialog = () => {
-    setSelectedRow(null);
-  };
-
-  const handleAddNewUser = (e) => {
-    setDataNewUser({
-      name: 'duyen',
-      email,
-      password,
-    });
-
+  useEffect(() => {
     const fetchApi = async () => {
       try {
         const { message, success, data } = await user.SignUp(dataNewUser);
@@ -192,7 +178,25 @@ const Team = () => {
       } catch (error) {}
     };
 
-    fetchApi();
+    if (dataNewUser !== '') {
+      fetchApi();
+    }
+  }, [dataNewUser]);
+
+  const handleRowClick = (params) => {
+    setSelectedRow(params.row);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedRow(null);
+  };
+
+  const handleAddNewUser = (e) => {
+    setDataNewUser({
+      name,
+      email,
+      password,
+    });
   };
 
   const handleDeleteUser = async (id) => {
@@ -213,7 +217,7 @@ const Team = () => {
       };
     }
     confirmAlert({
-      title: 'Confirm to submit',
+      title: 'Xác nhận xoá',
       message: 'Bạn có chắc muốn xoá người dùng này.',
       buttons: [
         {

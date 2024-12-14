@@ -151,7 +151,7 @@ const MyProSidebar = () => {
             />
             <Item
               title="Phim ưa thích"
-              to="/contacts"
+              to="/recommend"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
