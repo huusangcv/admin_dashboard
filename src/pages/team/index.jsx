@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useTheme, IconButton, InputBase } from '@mui/material';
+
 import { DataGrid } from '@mui/x-data-grid';
 import { tokens } from '../../theme';
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import AddIcon from '@mui/icons-material/Add';
 import ErrorIcon from '@mui/icons-material/Error';
+import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined';
 import Header from '../../components/Header';
 import Button2 from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import ClearIcon from '@mui/icons-material/Clear';
 import GradeIcon from '@mui/icons-material/Grade';
 import { ToastContainer } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
@@ -19,6 +22,7 @@ import user from '~/services/user';
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import './users.scss';
+import Spinner from '~/components/Spinner';
 const formatDate = (dateString) => {
   const date = new Date(dateString);
 
@@ -38,6 +42,7 @@ const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [data, setData] = useState([]);
+  const [dataUsersSearch, setDataUsersSearch] = useState('');
   const [dataNewUser, setDataNewUser] = useState('');
   const [show, setShow] = useState(false);
   const [name, setName] = useState('');
@@ -47,6 +52,9 @@ const Team = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [idDeleteUser, setIdDeleteUser] = useState('');
   const [dataUpdateUser, setDataUpdateUser] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [searchName, setSearchName] = useState('');
+  const [dataSearch, setDataSearch] = useState('');
   const handleClose = () => {
     setShow(false);
   };
@@ -160,6 +168,7 @@ const Team = () => {
         const { message, success } = await user.SignUp(dataNewUser);
         // Phân tích phản hồi JSON
         if (success) {
+          setLoading(false);
           alert(message);
           setName('');
           setEmail('');
@@ -183,6 +192,7 @@ const Team = () => {
     const fetchUpdateUser = async () => {
       const { success, message } = await user.Update(selectedRow.id, dataUpdateUser);
       if (success) {
+        setLoading(false);
         alert(message);
         setStatus('');
         setEmail('');
@@ -205,6 +215,7 @@ const Team = () => {
     const fetchDeleteUser = async () => {
       const { success, message } = await user.Delete(idDeleteUser);
       if (success) {
+        setLoading(false);
         alert(message);
         setIdDeleteUser('');
         handleClose();
@@ -219,6 +230,45 @@ const Team = () => {
       fetchDeleteUser();
     }
   }, [idDeleteUser]);
+
+  //fetch api search user
+  useEffect(() => {
+    const fetchSearchUser = async () => {
+      const { success, message, data } = await user.Search(searchName);
+      if (success) {
+        const result = data.data.map((newdata) => {
+          const formattedDate = formatDate(newdata.created_at);
+          if (newdata.email_verified_at !== null) {
+            return {
+              id: newdata.id,
+              name: newdata.name,
+              access: newdata.access,
+              email: newdata.email,
+              email_verified_at: 'Đã xác thực',
+              created_at: formattedDate,
+            };
+          }
+
+          return {
+            id: newdata.id,
+            name: newdata.name,
+            access: newdata.access,
+            email: newdata.email,
+            email_verified_at: 'Chưa xác thực',
+            created_at: formattedDate,
+          };
+        });
+        setDataUsersSearch(result);
+      } else {
+        alert(message);
+      }
+      try {
+      } catch (error) {}
+    };
+    if (dataSearch !== '') {
+      fetchSearchUser();
+    }
+  }, [dataSearch]);
 
   const handleRowClick = (params) => {
     setSelectedRow(params.row);
@@ -236,6 +286,7 @@ const Team = () => {
       email,
       password,
     });
+    setLoading(true);
   };
 
   const handleUpdateUser = () => {
@@ -243,7 +294,7 @@ const Team = () => {
       email: (email !== selectedRow.email && email) || 'null',
       email_verified_at: (status !== '' && status) || '',
     });
-    console.log('check email', email);
+    setLoading(true);
   };
 
   const handleDeleteUser = async () => {
@@ -252,10 +303,10 @@ const Team = () => {
       message: 'Bạn có chắc muốn xoá người dùng này.',
       buttons: [
         {
-          label: 'Yes',
+          label: (loading && <Spinner />) || 'Yes',
           onClick: () => {
+            setLoading(true);
             setIdDeleteUser(selectedRow.id);
-            handleCloseDialog();
           },
         },
         {
@@ -264,9 +315,34 @@ const Team = () => {
       ],
     });
   };
-  console.log('check data update', dataUpdateUser);
+
+  const handleDataSearch = () => {
+    setDataSearch(searchName);
+  };
   return (
     <>
+      <Box display="flex" backgroundColor={colors.primary[400]} p={0.2} borderRadius={1}>
+        <InputBase
+          sx={{ ml: 1, flex: 1 }}
+          placeholder="Search"
+          onChange={(e) => setSearchName(e.target.value)}
+          value={searchName}
+        />
+        {searchName !== '' && (
+          <IconButton
+            type="button"
+            onClick={() => {
+              setSearchName('');
+              setDataUsersSearch('');
+            }}
+          >
+            <ClearIcon />
+          </IconButton>
+        )}
+        <IconButton type="button" onClick={handleDataSearch}>
+          <SearchIcon />
+        </IconButton>
+      </Box>
       <Box m="20px">
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Header title="Người dùng" subtitle="Danh sách người dùng" />
@@ -310,7 +386,11 @@ const Team = () => {
               <AddIcon /> Thêm mới người dùng
             </Button2>
           </Stack>
-          <DataGrid rows={data} columns={columns} onRowClick={handleRowClick}></DataGrid>
+          <DataGrid
+            rows={(dataSearch !== '' && dataUsersSearch) || data}
+            columns={columns}
+            onRowClick={handleRowClick}
+          ></DataGrid>
         </Box>
       </Box>
 
@@ -350,7 +430,7 @@ const Team = () => {
             Huỷ
           </Button>
           <Button variant="primary" type="submit" onClick={handleUpdateUser}>
-            Cập nhật
+            {(loading && <Spinner />) || 'Cập nhật'}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -379,7 +459,7 @@ const Team = () => {
             Huỷ
           </Button>
           <Button variant="primary" type="submit" onClick={handleAddNewUser}>
-            Thêm
+            {(loading && <Spinner />) || 'Thêm'}
           </Button>
         </Modal.Footer>
       </Modal>

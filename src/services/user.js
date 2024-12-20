@@ -1,9 +1,13 @@
 import axios from '~/utils/custonizeAxiosAuth';
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = 'https://api.newmoviesz.online/api';
 
 const user = {
   List: async () => {
     const result = await axios.get(`${API_URL}/users`);
+    return result;
+  },
+  Login: async (data) => {
+    const result = await axios.post(`${API_URL}/login`, data);
     return result;
   },
   SignUp: async (data) => {
@@ -18,16 +22,20 @@ const user = {
     const result = await axios.delete(`${API_URL}/users/${id}`);
     return result;
   },
+  Search: async (searchName, page = 1) => {
+    const result = await axios.get(`${API_URL}/users?q=${searchName}&page=${page}`);
+    return result;
+  },
   AddNewMovie: async (data) => {
-    const result = await axios.post(`http://127.0.0.1:8000/api/movies`, data);
+    const result = await axios.post(`${API_URL}/movies`, data);
     return result;
   },
   updateMovieRecommend: async (id, data) => {
-    const result = await axios.put(`http://127.0.0.1:8000/api/movies/${id}`, data);
+    const result = await axios.put(`${API_URL}/movies/${id}`, data);
     return result;
   },
   deleteMovieRecommend: async (id) => {
-    const result = await axios.delete(`http://127.0.0.1:8000/api/movies/${id}`);
+    const result = await axios.delete(`${API_URL}/movies/${id}`);
     return result;
   },
 };

@@ -27,9 +27,13 @@ const getMovies = {
     const result = await axios.get(`phim/${slug}`);
     return result.data;
   },
-  Search: async (keyword, page = 1) => {
-    const result = await axios.get(`tim-kiem?keyword=${keyword}&page=${page}`);
+  Search: async (nameMovie, page = 1) => {
+    const result = await axios.get(`tim-kiem?keyword=${nameMovie}&page=1`);
     return result.data;
+  },
+  SearchRecommend: async (searchName, page = 1) => {
+    const result = await axios.get(`http://127.0.0.1:8000/api/movies?q=${searchName}&page=${page}`);
+    return result;
   },
   newUpdateSeries: async () => {
     const result = await axios.get(`danh-sach/phim-bo-dang-chieu?sort_field=modified.time&category=&country=&year=`);

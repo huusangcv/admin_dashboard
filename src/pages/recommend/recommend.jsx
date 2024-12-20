@@ -3,7 +3,7 @@ import user from '~/services/user';
 import getMovies from '~/services/getMovies';
 import Header from '../../components/Header';
 import { tokens } from '../../theme';
-import { Avatar, Box, Typography, useTheme } from '@mui/material';
+import { Avatar, Box, Typography, useTheme, IconButton, InputBase } from '@mui/material';
 import { DataGrid, faIR } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import Button2 from '@mui/material/Button';
@@ -11,11 +11,14 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import Stack from '@mui/material/Stack';
 import React, { useState, useEffect, useRef } from 'react';
 import { RiArrowGoBackFill } from 'react-icons/ri';
+import ClearIcon from '@mui/icons-material/Clear';
+import SearchIcon from '@mui/icons-material/Search';
 import { FaFilter, FaSearch, FaBackspace, FaTimesCircle } from 'react-icons/fa';
 import ReactPaginate from 'react-paginate';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+
 import Spinner from '~/components/Spinner';
 import { confirmAlert } from 'react-confirm-alert'; // Import
 const Recommend = () => {
@@ -42,7 +45,9 @@ const Recommend = () => {
   const [thumb, setThumb] = useState('');
   const [dataUpdateMovie, setDataUpdateMovie] = useState('');
   const [idDeleteMovieRecommend, setIdDeleteMovieRecommend] = useState('');
-
+  const [searchName, setSearchName] = useState('');
+  const [dataSearch, setDataSearch] = useState('');
+  const [dataMoviesRecommendSearch, setDataMoviesRecommendSearch] = useState('');
   const tableRef = useRef(null);
 
   //Fetch Movies All
@@ -67,7 +72,7 @@ const Recommend = () => {
   useEffect(() => {
     const fetchApi = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/movies');
+        const response = await fetch('https://api.newmoviesz.online/api/movies');
         if (!response.ok) {
           throw new Error(`Response status: ${response.status}`);
         }
@@ -114,6 +119,8 @@ const Recommend = () => {
 
     if (dataMovie !== '') {
       fetchDetail();
+    } else {
+      setLoading(false);
     }
   }, [dataMovie, dataMovie !== '']);
 
@@ -181,6 +188,23 @@ const Recommend = () => {
     }
   }, [idDeleteMovieRecommend]);
 
+  //fetch api search movies recommend
+  useEffect(() => {
+    const fetchSearchMovies = async () => {
+      const { success, message, data } = await getMovies.SearchRecommend(searchName);
+      if (success) {
+        setDataMoviesRecommendSearch(data.data);
+      } else {
+        alert(message);
+      }
+      try {
+      } catch (error) {}
+    };
+    if (dataSearch !== '') {
+      fetchSearchMovies();
+    }
+  }, [dataSearch]);
+
   //Settings column for list movies recommending
   const columns = [
     { field: 'id', headerName: 'Id', width: 50 },
@@ -190,7 +214,12 @@ const Recommend = () => {
       width: 200,
       cellClassName: 'name-column--cell',
     },
-
+    {
+      field: 'name_en',
+      headerName: 'Tên tiếng anh',
+      width: 200,
+      cellClassName: 'name-column--cell',
+    },
     {
       field: 'thumb',
       headerName: 'Ảnh',
@@ -320,8 +349,34 @@ const Recommend = () => {
     });
   };
 
+  const handleDataSearch = () => {
+    setDataSearch(searchName);
+  };
+
   return (
     <>
+      <Box display="flex" backgroundColor={colors.primary[400]} p={0.2} borderRadius={1}>
+        <InputBase
+          sx={{ ml: 1, flex: 1 }}
+          placeholder="Search"
+          onChange={(e) => setSearchName(e.target.value)}
+          value={searchName}
+        />
+        {searchName !== '' && (
+          <IconButton
+            type="button"
+            onClick={() => {
+              setSearchName('');
+              setDataMoviesRecommendSearch('');
+            }}
+          >
+            <ClearIcon />
+          </IconButton>
+        )}
+        <IconButton type="button" onClick={handleDataSearch}>
+          <SearchIcon />
+        </IconButton>
+      </Box>
       <Box m="20px">
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Header title="Đề cử" subtitle="Phim đề cử" />
@@ -365,7 +420,11 @@ const Recommend = () => {
               <AddIcon /> Thêm mới phim đề cử
             </Button2>
           </Stack>
-          <DataGrid rows={data} columns={columns} onRowClick={handleRowClick}></DataGrid>
+          <DataGrid
+            rows={(dataSearch !== '' && dataMoviesRecommendSearch) || data}
+            columns={columns}
+            onRowClick={handleRowClick}
+          ></DataGrid>
         </Box>
       </Box>
 
