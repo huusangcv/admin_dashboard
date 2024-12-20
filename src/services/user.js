@@ -26,6 +26,10 @@ const user = {
     const result = await axios.get(`${API_URL}/users?q=${searchName}&page=${page}`);
     return result;
   },
+  getListMoviesRecommend: async () => {
+    const result = await axios.get(`${API_URL}/movies`);
+    return result;
+  },
   AddNewMovie: async (data) => {
     const result = await axios.post(`${API_URL}/movies`, data);
     return result;

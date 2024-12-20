@@ -72,12 +72,7 @@ const Recommend = () => {
   useEffect(() => {
     const fetchApi = async () => {
       try {
-        const response = await fetch('https://api.newmoviesz.online/api/movies');
-        if (!response.ok) {
-          throw new Error(`Response status: ${response.status}`);
-        }
-
-        const { data, success } = await response.json();
+        const { data, success } = await user.getListMoviesRecommend();
         if (success) {
           setData(data.data);
         }
